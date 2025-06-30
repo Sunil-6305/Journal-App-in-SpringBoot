@@ -48,6 +48,16 @@
 				  <groupId>org.springframework.boot</groupId>
 				  <artifactId>spring-boot-devtools</artifactId>
 				</dependency>
+				
+				<!-- pom.xml me ye dependency add karo -->
+				<dependency>
+				    <groupId>org.projectlombok</groupId>
+				    <artifactId>lombok</artifactId>
+				     <!-- latest as of 2025 -->
+				    <scope>provided</scope>
+				</dependency>
+				
+				
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>

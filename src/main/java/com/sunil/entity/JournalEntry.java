@@ -6,8 +6,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+
 @Entity
 @Table(name = "journal_entries")
+@Data  //Bas ek @Data lagaya — aur sab kuch auto ho gaya! no seter geter
 public class JournalEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ✅ Auto-increment
@@ -21,35 +24,5 @@ public class JournalEntry {
 	    this.entryDate = LocalDate.now();
 	    this.entryTime = LocalTime.now();
 	}
-	//
-	public LocalDate getEntryDate() {
-		return entryDate;
-	}
-	public void setEntryDate(LocalDate entryDate) {
-		this.entryDate = entryDate;
-	}
-	public LocalTime getEntryTime() {
-		return entryTime;
-	}
-	public void setEntryTime(LocalTime entryTime) {
-		this.entryTime = entryTime;
-	}
-	public long getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getTitle() {
-		return title;
-	}
-	public void setTitle(String title) {
-		this.title = title;
-	}
-	public String getContent() {
-		return content;
-	}
-	public void setContent(String content) {
-		this.content = content;
-	}
+	
 }
