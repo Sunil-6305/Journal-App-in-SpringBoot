@@ -1,5 +1,20 @@
 HELP.md
+# Ignore all class files
+*.class
+# .gitignore में लिखें
+.gitattributes
 
+# Ignore compiled bin folders
+/bin/
+/target/
+/build/
+/out/
+# Optional: VS Code/Eclipse/IDEA stuff
+*.log
+*.iml
+.classpath
+.project
+.settings/
 Gitdiff/
 docs/
 target/
@@ -14,13 +29,11 @@ target/
 .settings
 .springBeans
 .sts4-cache
-
 ### IntelliJ IDEA ###
 .idea
 *.iws
 *.iml
 *.ipr
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -30,11 +43,9 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
 ### VS Code ###
 .vscode/
-
  .gitattributes/
-
 mvnw
 mvnw.cmd
+/.metadata/

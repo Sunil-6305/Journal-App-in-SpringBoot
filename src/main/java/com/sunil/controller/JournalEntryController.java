@@ -1,94 +1,71 @@
 package com.sunil.controller;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import com.sunil.entity.JournalEntry;
-
+import com.sunil.services.JournalEnteryServiceimpl;
 @RestController
 @RequestMapping("/journal")
 public class JournalEntryController {
-
-	// Yeh ek Map hai jismein hum JournalEntry object ko memory mein temporarily
-	// store kar rahe hain.
-	// Key = Long (ID), Value = JournalEntry object
-	private Map<Long, JournalEntry> journalEntries = new HashMap<>();
-	private long currentId = 1;
-
-	/*
-	 * Jab user GET request karega bina kisi path ke ("/"), to yeh method saari
-	 * journal entries list ke form mein return karega. List<JournalEntry>: ye
-	 * method ek List return karega, jisme JournalEntry type ke objects honge.
-	 * .values(): iska matlab map ke andar jitni bhi values hain (sirf JournalEntry
-	 * objects), unko le lo. new ArrayList<>(...): un values ko ek nayi list me daal
-	 * do. Map ke andar jitni bhi Journal Entries hain, unko ek List me daal ke
-	 * return karega.
-	 */
-	@GetMapping
-	public List<JournalEntry> getSimpalAll() {
-		return new ArrayList<>(journalEntries.values());
+    @Autowired
+    private JournalEnteryServiceimpl jEntryService;
+    /*
+     * ✅ POST Request: /journal Is method se naya JournalEntry create hota hai.
+     * 
+     * @RequestBody ke through client se JSON data aata hai jo JournalEntry ban jata
+     * hai. LocalDateTime.now() se current date-time set kiya jaata hai. Fir service
+     * ke through database me save kiya jaata hai.
+     */
+    @PostMapping
+    public boolean createEntry(@RequestBody JournalEntry journalEntry) {
+	jEntryService.saveJEntry(journalEntry);
+	return true;
+    }
+    /*
+     * ✅ GET Request: /journal Ye method saare JournalEntry objects ko list ke form
+     * me return karta hai. Service layer ke through sabhi entries ko fetch kiya
+     * jaata hai.
+     */
+    @GetMapping
+    public List<JournalEntry> getSimpalAll() {
+	return jEntryService.getAllJe();
+    }
+    /*
+     * ✅ GET Request: /journal/id/{myId} Particular JournalEntry ko fetch karta hai
+     * uske ID ke basis pe. Agar entry milti hai to return karta hai, nahi to null
+     * return hota hai.
+     */
+    @GetMapping("id/{myId}")
+    public JournalEntry getJournalEntrybyId(@PathVariable int myId) {
+	return jEntryService.findByID(myId).orElse(null);
+    }
+    /*
+     * ✅ DELETE Request: /journal/id/{myId} Kisi particular JournalEntry ko delete
+     * karta hai uski ID ke basis pe. Delete ke baad true return karta hai.
+     */
+    @DeleteMapping("id/{myId}")
+    public boolean deljournalEntry(@PathVariable int myId) {
+	jEntryService.deletById(myId);
+	return true;
+    }
+    /*
+     * ✅ PUT Request: /journal/id/{id} Yeh method existing JournalEntry ko update
+     * karta hai uski ID ke basis par. Agar title ya content naya diya gaya hai, to
+     * wahi update hoga. Purani values ko preserve karta hai agar naye fields null
+     * ya blank ho.
+     */
+    @PutMapping("id/{id}")
+    public JournalEntry updatJEById(@PathVariable int id, @RequestBody JournalEntry updatedEntry) {
+	JournalEntry oldEntry = jEntryService.findByID(id).orElse(null);
+	if (oldEntry != null) {
+	    oldEntry.setTitle(
+		    updatedEntry.getTitle() != null && !updatedEntry.getTitle().isEmpty() ? updatedEntry.getTitle()
+			    : oldEntry.getTitle());
+	    oldEntry.setContent(updatedEntry.getContent() != null && !updatedEntry.getContent().isEmpty()
+		    ? updatedEntry.getContent()
+		    : oldEntry.getContent());
 	}
-
-	/*
-	 * Jab user POST request bhejta hai JSON data ke saath, to yeh method us JSON ko
-	 * JournalEntry object mein convert karke map mein save kar dega.
-	 * 
-	 * @RequestBody: JSON body ko JournalEntry object me convert karne ke liye use
-	 * hota hai. journalEntries.put(): ID ke basis pe object ko map me store kar
-	 * deta hai.
-	 */
-	@PostMapping
-	public boolean createEntry(@RequestBody JournalEntry journalEntry) {
-		journalEntry.setId(currentId++);
-		journalEntries.put(journalEntry.getId(), journalEntry); // ID ke basis pe entry store ho jaegi
-		return true;
-	}
-
-	/*
-	 * Jab user GET request karta hai "/id/{myId}" ke saath, to yeh method us ID
-	 * wali ek specific journal entry return karega.
-	 * 
-	 * @PathVariable: URL se ID uthakar method me pass karta hai.
-	 * journalEntries.get(): Map se directly us ID ke object ko fetch karta hai.
-	 */
-	@GetMapping("id/{myId}")
-	public JournalEntry getJournalEntrybyId(@PathVariable Long myId) {
-		return journalEntries.get(myId);
-	}
-
-	/*
-	 * Jab user DELETE request karta hai "/id/{myId}" ke saath, to yeh method us ID
-	 * wali entry ko map se hata dega aur delete ki gayi entry ko return karega.
-	 * journalEntries.remove(): us ID ke object ko map se delete kar deta hai.
-	 */
-	@DeleteMapping("id/{myId}")
-	public JournalEntry deljournalEntry(@PathVariable Long myId) {
-		return journalEntries.remove(myId);
-	}
-
-	// ====================[ PUT by ID - Entry update karne ke liye
-	// ]======================
-	/*
-	 * Jab user PUT request karta hai "/id/{id}" ke saath, aur body mein updated
-	 * entry deta hai, to yeh method purani entry ko nayi entry se replace kar deta
-	 * hai. journalEntries.put(): purani entry overwrite ho jaati hai nayi entry se.
-	 * 
-	 * @RequestBody: updated entry ko JSON se object banata hai.
-	 */
-	@PutMapping("id/{id}")
-	public JournalEntry updatJournalEntryByEntryId(@PathVariable Long id, @RequestBody JournalEntry myEntry) {
-		return journalEntries.put(id, myEntry);
-	}
-
+	jEntryService.saveJEntry(oldEntry);
+	return oldEntry;
+    }
 }
