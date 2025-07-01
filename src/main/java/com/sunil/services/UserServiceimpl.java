@@ -1,15 +1,8 @@
 package com.sunil.services;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,23 +14,41 @@ import org.springframework.stereotype.Component;
 import com.sunil.entity.User;
 import com.sunil.repo.UserRepo;
 
-import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Component // या @Service
+@Slf4j
 public class UserServiceimpl implements UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
     @Autowired
     private UserRepo userRepo;
 
-    UserServiceimpl(PasswordEncoder passwordEncoder) {
+    @Autowired
+    public UserServiceimpl(PasswordEncoder passwordEncoder) {
 	this.passwordEncoder = passwordEncoder;
     }
 
-    public void saveUEntry(User user) {
+    // private static final org.slf4j.Logger logger =
+    // LoggerFactory.getLogger(UserService.class);Add commentMore actions
 
-	userRepo.save(user);
+    public User saveUEntry(User user) {
+	try {
+	    if (!user.getPassword().startsWith("$2a$")) {
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
+	    }
 
+	    // Set default role
+	    user.setRoles(Arrays.asList("USER"));
+
+	    // Save and return saved user
+	    User savedUser = userRepo.save(user);
+	    return savedUser;
+
+	} catch (Exception e) {
+	    log.error("Error occurred while saving user: {}", e.getMessage(), e);
+	    return null;
+	}
     }
 
     public void saveAdmin(User user) {
@@ -71,23 +82,14 @@ public class UserServiceimpl implements UserDetailsService {
     // 👇 Spring Security will call this for authentication
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepo.findByUserName(username);
+	User user = userRepo.findByUserName(username);
 
-        if (user != null) {
-            // ✅ Convert each role to SimpleGrantedAuthority with "ROLE_" prefix
-            List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role)) // Add prefix manually
-                .collect(Collectors.toList());
+	if (user != null) {
+	    return org.springframework.security.core.userdetails.User.builder().username(user.getUserName())
+		    .password(user.getPassword()).roles(user.getRoles().toArray(new String[0])).build();
+	}
 
-            return new org.springframework.security.core.userdetails.User(
-                user.getUserName(),
-                user.getPassword(),
-                authorities
-            );
-        }
-
-        throw new UsernameNotFoundException("User not found with username: " + username);
+	throw new UsernameNotFoundException("User not found with username: " + username);
     }
-
 
 }

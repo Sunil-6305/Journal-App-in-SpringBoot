@@ -9,18 +9,20 @@ import org.springframework.web.bind.annotation.*;
 
 import com.sunil.entity.User;
 import com.sunil.services.UserServiceimpl;
+ 
+ 
 
 @RestController
 @RequestMapping("/admin") // 🧭 All routes prefixed with /admin
 public class AdminController {
 
     @Autowired
-    private UserServiceimpl userService; // ✅ Interface Injection - avoids circular dependency
+    private UserServiceimpl userServiceimpl; // ✅ Interface Injection - avoids circular dependency
 
     // ✅ GET: All Users (Admin-only access if protected by Spring Security)
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUser() {
-        List<User> allUser = userService.getAllUser();
+        List<User> allUser = userServiceimpl.getAllUser();
 
         if (allUser != null && !allUser.isEmpty()) {
             return new ResponseEntity<>(allUser, HttpStatus.OK);
@@ -32,7 +34,7 @@ public class AdminController {
     // ✅ POST: Create Admin User
     @PostMapping("/create-admin-user")
     public ResponseEntity<?> createUser(@RequestBody User user) {
-        userService.saveAdmin(user);
+	userServiceimpl.saveAdmin(user);
         return new ResponseEntity<>("✅ Admin user created successfully", HttpStatus.CREATED);
     }
 }

@@ -63,6 +63,29 @@
 				<artifactId>spring-boot-starter-security</artifactId>
 			</dependency>
 				
+				<!-- ✅ JWT Dependencies for Token Based Authentication -->
+<!-- JJWT API: Main interface for creating/parsing JWTs -->
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-api</artifactId>
+    <version>0.12.5</version>
+</dependency>
+
+<!-- JJWT Implementation: Actual implementation used at runtime -->
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-impl</artifactId>
+    <version>0.12.5</version>
+    <scope>runtime</scope>
+</dependency>
+
+<!-- JJWT with Jackson: JSON support for JWT claims using Jackson -->
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-jackson</artifactId>
+    <version>0.12.5</version>
+</dependency>
+
 				
 				
 		<dependency>
