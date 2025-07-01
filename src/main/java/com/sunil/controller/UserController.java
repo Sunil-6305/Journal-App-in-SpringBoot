@@ -1,163 +1,113 @@
 package com.sunil.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import com.sunil.entity.User;
+import com.sunil.repo.UserRepo;
 import com.sunil.services.UserServiceimpl;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
-    private UserServiceimpl userServiceimpl;
+    private final PasswordEncoder passwordEncoder;
 
-    /**
-     * ================================================================
-     * ✅ [POST] /journal
-     * ---------------------------------------------------------------
-     * 🔹 Purpose:
-     *     - Naye User ko create karne ke liye use hota hai.
-     *     - Agar user ke saath journalEntries bhi aayein to wo bhi save hoti hain.
-     *
-     * 🔹 Flow:
-     *     1. @RequestBody se User object JSON ke form me input liya jata hai.
-     *     2. Service layer ke through User ko database me save kiya jata hai.
-     *
-     * 🔹 Returns:
-     *     - 201 CREATED: Agar User successfully save ho jaye.
-     *     - 400 BAD REQUEST: Agar koi error aa jaye saving ke dauraan.
-     * ================================================================
-     */
-    @PostMapping
-    public ResponseEntity<?> createEntry(@RequestBody User user) {
-        try {
-            userServiceimpl.saveUEntry(user);
-            return new ResponseEntity<>(user, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(user, HttpStatus.BAD_REQUEST);
-        }
+	@Autowired
+	private UserServiceimpl userService;
+
+	@Autowired
+	private UserRepo userRepo;
+
+    UserController(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * ================================================================
-     * ✅ [GET] /journal
-     * ---------------------------------------------------------------
-     * 🔹 Purpose:
-     *     - Saare Users ko list ke form me fetch karna.
-     *
-     * 🔹 Flow:
-     *     1. Service layer ke method getAllUser() se user list fetch hoti hai.
-     *     2. Agar list non-empty hai to 200 OK return hota hai.
-     *     3. Agar list empty hai to 404 Not Found return hota hai.
-     *
-     * 🔹 Returns:
-     *     - 200 OK + List<User>: Agar users mil jayein.
-     *     - 404 NOT FOUND: Agar koi user nahi mila.
-     * ================================================================
-     */
-    @GetMapping
-    public ResponseEntity<?> getSimpalAll() {
-        List<User> allUsers = userServiceimpl.getAllUser();
-        if (allUsers != null && !allUsers.isEmpty()) {
-            return new ResponseEntity<>(allUsers, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+	/*
+	 * ===============================================================
+	 * 🧾 1.0: Read (Get All Users)
+	 * ✅ [Optional Method - Commented] 
+	 * ✅ Purpose: सभी users को database से प्राप्त करना
+	 * ✅ URL: GET /user
+	 * ===============================================================
+	 **/
+	  @GetMapping
+	  public List<User> getAllUsers(User user) {
+	      return userService.getAllUser();
+	  }
+	 
 
-    /**
-     * ================================================================
-     * ✅ [GET] /journal/id/{myId}
-     * ---------------------------------------------------------------
-     * 🔹 Purpose:
-     *     - Specific ID ke user ko fetch karna.
-     *
-     * 🔹 Flow:
-     *     1. URL ke path se ID fetch hota hai.
-     *     2. Service layer ke through user ko search kiya jata hai.
-     *     3. Agar user mil jaye to return karo 200 OK.
-     *     4. Agar user nahi mila to return karo 404 NOT FOUND.
-     *
-     * 🔹 Returns:
-     *     - 200 OK + User Object: Agar user mila.
-     *     - 404 NOT FOUND: Agar user nahi mila.
-     * ================================================================
-     */
-    @GetMapping("id/{myId}")
-    public ResponseEntity<?> getUserId(@PathVariable int myId) {
-        Optional<User> user = userServiceimpl.findByID(myId);
-        if (user.isPresent()) {
-            return new ResponseEntity<>(user.get(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>("User not found with ID: " + myId, HttpStatus.NOT_FOUND);
-    }
+	/*
+	 * ===============================================================
+	 * ✏️ 3.1: Update User
+	 * ✅ Purpose: जो currently logged-in user है, उसकी details update करना
+	 * ✅ URL: PUT /user
+	 * ✅ Access: 🔒 Authenticated users only (Based on logged-in username)
+	 * ✅ Input: RequestBody में नया User object (updated data)
+	 * ✅ Logic:
+	 *    - Authentication से username निकाला जाता है
+	 *    - उसी username से database में user को fetch किया जाता है
+	 *    - फिर updated username और password से update किया जाता है
+	 * ===============================================================
+	 */
+	@PutMapping
+	public ResponseEntity<?> update_User(@RequestBody User user) {
 
-    /**
-     * ================================================================
-     * ✅ [DELETE] /journal/id/{myId}
-     * ---------------------------------------------------------------
-     * 🔹 Purpose:
-     *     - Kisi bhi user ko uske ID ke through delete karna.
-     *
-     * 🔹 Flow:
-     *     1. PathVariable se ID liya jaata hai.
-     *     2. Service ke method se user exist karta hai ya nahi, check hota hai.
-     *     3. Agar user milta hai to delete karo.
-     *     4. Agar nahi milta to 404 error bhejna.
-     *
-     * 🔹 Returns:
-     *     - 200 OK: Agar delete successful ho jaye.
-     *     - 404 NOT FOUND: Agar user nahi mila.
-     * ================================================================
-     */
-    @DeleteMapping("id/{myId}")
-    public ResponseEntity<?> DeleteUser(@PathVariable int myId) {
-        Optional<User> user = userServiceimpl.findByID(myId);
-        if (user.isPresent()) {
-            userServiceimpl.deletById(myId);
-            return ResponseEntity.ok("✅ Deleted Ueser with ID: " + myId);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("❌ user not found with ID: " + myId);
-        }
-    }
+		// 🔐 Get currently logged-in user’s username
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String userName = authentication.getName();
 
-    /**
-     * ================================================================
-     * ✅ [PUT] /journal/{userName}
-     * ---------------------------------------------------------------
-     * 🔹 Purpose:
-     *     - Username ke basis par user ka password update karna.
-     *
-     * 🔹 Flow:
-     *     1. @PathVariable se username liya jata hai.
-     *     2. Us user ko DB se fetch kiya jata hai.
-     *     3. Agar user milta hai:
-     *          - Password ko update karo.
-     *          - Save the updated user.
-     *     4. Agar user nahi mila:
-     *          - 404 error return karo.
-     *
-     * 🔹 Returns:
-     *     - 204 NO CONTENT: Agar update successful ho jaye.
-     *     - 404 NOT FOUND: Agar user exist nahi karta.
-     * ================================================================
-     */
-    @PutMapping("/{userName}")
-    public ResponseEntity<?> update_User(@RequestBody User user, @PathVariable String userName) {
-        User userInDb = userServiceimpl.findByUserName(userName);
-        if (userInDb != null) {
-            userInDb.setPassword(user.getPassword()); // ✅ Sirf password update ho raha hai
-            userServiceimpl.saveUEntry(userInDb);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>("User not found with username: " + userName, HttpStatus.NOT_FOUND);
-    }
+		// 🔎 Fetch user from DB by username
+		User userInDb = userService.findByUserName(userName);
 
+		if (userInDb != null) {
+			// ✏️ Update details
+			userInDb.setUserName(user.getUserName());
+			userInDb.setPassword(passwordEncoder.encode(user.getPassword())); // ⚠️ Encrypt before saving (if needed)
+			 
+			
+			userService.saveUEntry(userInDb);
+		}
+
+		// 🔁 No Content means successful update with no body
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+
+	/*
+	 * ===============================================================
+	 * 🗑️ 3.2: Delete User
+	 * ✅ Purpose: Logged-in user को delete करना
+	 * ✅ URL: DELETE /user
+	 * ✅ Access: 🔒 Authenticated users only
+	 * ✅ Input: RequestBody में user object (हालांकि username auth से लिया जा रहा है)
+	 * ✅ Logic:
+	 *    - Logged-in user का username निकालो
+	 *    - Repo से उसे delete करो
+	 * ===============================================================
+	 */
+	@DeleteMapping
+	public ResponseEntity<?> deleteUserById(@RequestBody User user) {
+
+		// 🔐 Get logged-in user’s username
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		// 🗑️ Delete from DB using username
+		userRepo.deleteByUserName(authentication.getName());
+
+
+		// 🔁 Return success (204 No Content)
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
 }

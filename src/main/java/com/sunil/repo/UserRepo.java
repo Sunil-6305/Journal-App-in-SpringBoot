@@ -5,7 +5,13 @@ import com.sunil.entity.User;
 public interface UserRepo extends JpaRepository<User, Integer> {
     
     
-    public User findByUserName(String userName);
+    
+    
+    // ✅ User fetch करने के लिए:
+    User findByUserName(String userName);
+
+    // ✅ User delete करने के लिए:
+    void deleteByUserName(String userName);
     
 }
 
