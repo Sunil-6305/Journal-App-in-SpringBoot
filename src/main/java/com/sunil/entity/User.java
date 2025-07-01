@@ -46,7 +46,8 @@ public class User {
     private List<JournalEntry> journalEntries = new ArrayList<>();
     
     @NonNull
-    private List<String> roles;
+    private List<String> roles; // ✔️ Multiple roles jaise ADMIN, USER store karne ke लिए
+
     
     
 }

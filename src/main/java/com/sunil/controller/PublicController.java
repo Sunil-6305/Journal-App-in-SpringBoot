@@ -28,11 +28,12 @@ public class PublicController {
 
     @GetMapping("/health-check")
     public String healthCheck() { return "Ok"; }
-
-    @PostMapping("/create-user")
+    
+    
+    @PostMapping("/create-user")   
     public User createUser(@RequestBody User user) {
+	user.setPassword(passwordEncoder.encode(user.getPassword()));
         // 1. Password encode करो
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // 2. Save करो via service layer
           userService.saveUEntry(user);

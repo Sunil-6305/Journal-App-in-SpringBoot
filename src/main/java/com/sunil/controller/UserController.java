@@ -35,20 +35,7 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-	/*
-	 * ===============================================================
-	 * 🧾 1.0: Read (Get All Users)
-	 * ✅ [Optional Method - Commented] 
-	 * ✅ Purpose: सभी users को database से प्राप्त करना
-	 * ✅ URL: GET /user
-	 * ===============================================================
-	 **/
-	  @GetMapping
-	  public List<User> getAllUsers(User user) {
-	      return userService.getAllUser();
-	  }
-	 
-
+	
 	/*
 	 * ===============================================================
 	 * ✏️ 3.1: Update User
