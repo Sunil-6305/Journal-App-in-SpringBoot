@@ -8,7 +8,7 @@ import lombok.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Data
@@ -18,36 +18,24 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment primary key
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @NonNull
-    //@Column(name = "user_name", unique = true, nullable = false)
+    @JsonAlias({"userName", "UserName", "username"})  // ✅ Accept all casing variations
     private String userName;
 
     @NonNull
-    //@Column(nullable = false)
+    @JsonAlias({"password", "Password"})
     private String password;
+    private String email;
+    private String provider;
+    private String name;
 
-    /*
-     * ✅ One-to-Many Relationship (1 User -> Many JournalEntries)
-     *
-     * mappedBy = "user"
-     * --> "user" field JournalEntry entity में है, वही foreign key hold कर रहा है।
-     *
-     * cascade = CascadeType.ALL
-     * --> अगर User को save/delete करोगे तो उसकी entries भी automatically save/delete होंगी।
-     *
-     * orphanRemoval = true
-     * --> अगर किसी User से उसकी JournalEntry हटा दी गई, तो वो DB से भी delete हो जाएगी।
-     */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<JournalEntry> journalEntries = new ArrayList<>();
     
     @NonNull
-    private List<String> roles; // ✔️ Multiple roles jaise ADMIN, USER store karne ke लिए
-
-    
-    
+    private List<String> roles;
 }

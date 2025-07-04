@@ -70,7 +70,7 @@ public class PublicController {
         User savedUser = userServiceImpl.saveUEntry(user);
 
         // Generate token for the user
-        String token = jwtUtilis.generateToken(savedUser.getUserName());
+        String token = jwtUtilis.generateToken(user);
 
         // Return response
         return ResponseEntity.ok(new ApiResponse(true, "✅ User created successfully", token));
@@ -99,7 +99,10 @@ public class PublicController {
             UserDetails userDetails = userServiceImpl.loadUserByUsername(loginRequest.getUserName());
 
             // Generate JWT token
-            String jwt = jwtUtilis.generateToken(userDetails.getUsername());
+            
+            User fullUser = userServiceImpl.findByUserName(userDetails.getUsername());
+            String jwt = jwtUtilis.generateToken(fullUser);
+
 
             return ResponseEntity.ok(new ApiResponse(true, "✅ Login successful", jwt));
 

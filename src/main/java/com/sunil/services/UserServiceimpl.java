@@ -9,14 +9,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.sunil.entity.User;
 import com.sunil.repo.UserRepo;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Component // या @Service
+@Service // या @Service
 @Slf4j
 public class UserServiceimpl implements UserDetailsService {
 

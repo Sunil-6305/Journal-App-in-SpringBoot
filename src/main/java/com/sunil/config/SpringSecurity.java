@@ -31,17 +31,16 @@ public class SpringSecurity {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-
-        http.authorizeHttpRequests(auth -> auth
-            .requestMatchers("/admin/**").hasRole("ADMIN")
-            .requestMatchers("/journal/**", "/user/**").authenticated()
-            .anyRequest().permitAll());
-
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        // ✅ JWT Filter को add करें
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http    .cors() // ✅ THIS LINE IS MANDATORY
+                .and()  // ✅ Go back to HttpSecurity
+                .csrf(csrf -> csrf.disable()) // 🔒 CSRF disabled for APIs
+                .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/admin/**").hasRole("ADMIN") // 🔐 Admin access
+                .requestMatchers("/journal/**", "/user/**").authenticated() // 🔐 JWT required
+                .anyRequest().permitAll() // 🌐 Public endpoints allowed
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 🔑 JWT = Stateless
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // 📦 Add JWT filter
 
         return http.build();
     }

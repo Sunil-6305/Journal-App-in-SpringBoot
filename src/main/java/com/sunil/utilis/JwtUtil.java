@@ -7,6 +7,9 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
+
+import com.sunil.entity.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -21,20 +24,28 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(String userName) {
-        Map<String, Object> claimsMap = new HashMap<>();
-        return createToken(claimsMap, userName);
-    }
+    public String generateToken(User user) {
+	    Map<String, Object> claimsMap = new HashMap<>();
+	    claimsMap.put("userId", user.getId());
+	    claimsMap.put("userName", user.getUserName());
+	    claimsMap.put("roles", user.getRoles());
+	    claimsMap.put("name", user.getName());
+	    claimsMap.put("email", user.getEmail());
+	    claimsMap.put("provider", user.getProvider());	    	    
+	    return createToken(claimsMap, user.getUserName());
+	}
+
 
     public String createToken(Map<String, Object> claimsMap, String userName) {
-        return Jwts.builder().claims(claimsMap)
-                .subject(userName)
-                .header().empty().add("typ", "JWT")
-                .and().issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(getSigningKey())
-                .compact();
-    }
+	    return Jwts.builder()
+	            .setClaims(claimsMap)                           // 🧾 Custom Claims
+	            .setSubject(userName)                           // 👤 subject = userName
+	            .setIssuedAt(new Date(System.currentTimeMillis())) // 🕒 Issue time
+	            .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs)) // ⏳ Expiry
+	            .signWith(getSigningKey())                      // 🔐 Signing with secret key
+	            .compact();                                     // 📦 Final token
+	}
+
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
